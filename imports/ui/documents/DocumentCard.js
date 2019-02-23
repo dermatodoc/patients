@@ -230,7 +230,7 @@ class DocumentCard extends React.Component {
 							<Avatar><TableChartIcon/></Avatar>
 							<ListItemText
 								disableTypography={true}
-								primary={<Typography variant="subtitle1">Results</Typography>}
+								primary={<Typography variant="subtitle1">Table</Typography>}
 								secondary={<HealthOneLabResultsTable document={document}/>}
 							/>
 						</ListItem>
