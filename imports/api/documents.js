@@ -7,6 +7,7 @@ import { map } from '@aureooms/js-itertools' ;
 import { enumerate } from '@aureooms/js-itertools' ;
 
 import parseHealthOne from 'healthone/lib/parse' ;
+import chardet from 'chardet' ;
 
 import { normalized } from './string.js';
 
@@ -23,7 +24,13 @@ if (Meteor.isServer) {
 	Meteor.publish('documents.page', function (page, perpage) {
 		check(page, Number);
 		check(perpage, Number);
-		return Documents.find({ owner: this.userId}, {sort: { createdAt: -1 }, skip: page*perpage, limit: perpage});
+		return Documents.find({
+			owner: this.userId
+		}, {
+			sort: { createdAt: -1 },
+			skip: page*perpage,
+			limit: perpage
+		});
 	});
 
 	Meteor.publish('document', function (_id) {
@@ -32,7 +39,10 @@ if (Meteor.isServer) {
 
 	Meteor.publish('patient.documents', function (patientId) {
 		check(patientId, String);
-		return Documents.find({ owner: this.userId , patientId: patientId });
+		return Documents.find({
+			owner: this.userId ,
+			patientId: patientId
+		});
 	});
 
 }
@@ -40,38 +50,68 @@ if (Meteor.isServer) {
 function sanitize ( {
 	patientId,
 	format,
-	source,
+	buffer,
 } ) {
 
 	patientId === undefined || check(patientId, String);
 	check(format, String);
-	check(source, String);
+	check(buffer, ArrayBuffer);
 
-	if (format === 'healthone') {
-		try {
-			const entries = [];
-			const documents = parseHealthOne(source);
-			for ( const document of documents ) {
-				const entry = {
-					...document,
-					patientId,
-					format,
-					source: document.source.join('\n'),
-					parsed: true,
-				} ;
-				entries.push(entry);
+	try {
+
+		const encoding = chardet.detect(buffer).toLowerCase();
+		const mangled = (new TextDecoder('utf-8', {fatal: true})).decode(buffer, {stream: false});
+		const decoder = new TextDecoder(encoding, {fatal: true});
+		const decoded = decoder.decode(buffer, {stream: false});
+
+		if (format === 'healthone') {
+			try {
+				const entries = [];
+				const mangledDocuments= parseHealthOne(mangled);
+				const documents = parseHealthOne(decoded);
+				if (mangledDocuments.length !== documents.length) {
+					throw new Error('Number of entries do not match.');
+				}
+				for ( const [document, mangled] of zip(documents, mangled) ) {
+					const entry = {
+						...document,
+						patientId,
+						format,
+						source: mangled.source.join('\n'),
+						encoding,
+						decoded: document.source.join('\n'),
+						parsed: true,
+					} ;
+					entries.push(entry);
+				}
+				return entries;
 			}
-			return entries;
+			catch (e) {
+				console.error('Failed to parse Health One document.', e);
+			}
 		}
-		catch (e) {
-			console.error('Failed to parse Health One document.', e);
-		}
+
+		return [ {
+			patientId,
+			format,
+			buffer,
+			parsed: false,
+			source: mangled,
+			encoding,
+			decoded,
+		} ] ;
+
 	}
+
+	catch (e) {
+		console.error('Failed to decode document buffer', e);
+	}
+
 
 	return [ {
 		patientId,
 		format,
-		source,
+		buffer,
 		parsed: false,
 	} ] ;
 
@@ -128,7 +168,7 @@ Meteor.methods({
 
 		const entries = sanitize(document);
 
-		let firstId = undefined;
+		const result = [];
 
 		for ( const entry of entries ) {
 
@@ -155,27 +195,39 @@ Meteor.methods({
 					owner: this.userId,
 				});
 
-				firstId = firstId || _id ;
+				result.push(_id);
 
 			}
 
 			else {
 
-				// This is the occasion to check if we do not have a match for
-				// the patient.
-				// Maybe this should be tested at patient insertion though.
+				// We update the document if we found a matching patient and no
+				// patient had been assigned before.
 
 				if (!existingDocument.patientId && patientId) {
+					// TODO Test this on all documents without a patientId when
+					// creating a new patient.
 					Documents.update(existingDocument._id, { $set: { patientId } });
 				}
 
-				firstId = firstId || existingDocument._id ;
+				// We update the document if it had not been properly decoded before.
+
+				if (existingDocument.parsed && !existingDocument.decoded) {
+					Documents.update(existingDocument._id, {
+						$set: {
+							encoding: entry.encoding,
+							decoded: entry.decoded,
+						}
+					});
+				}
+
+				result.push(existingDocument._id);
+
 			}
 
 		}
 
-		return firstId;
-
+		return result;
 
 	},
 
@@ -202,7 +254,25 @@ Meteor.methods({
 		return Documents.update(documentId, { $unset: { patientId: '' } });
 	},
 
-	'documents.remove'(documentId){
+	'documents.delete'(documentId){
+		//check(documentId, String);
+		const document = Documents.findOne(documentId);
+		if (!document || document.owner !== this.userId) {
+			throw new Meteor.Error('not-authorized');
+		}
+		return Documents.update(documentId, { $set: { deleted: true } });
+	},
+
+	'documents.restore'(documentId){
+		//check(documentId, String);
+		const document = Documents.findOne(documentId);
+		if (!document || document.owner !== this.userId) {
+			throw new Meteor.Error('not-authorized');
+		}
+		return Documents.update(documentId, { $set: { deleted: false } });
+	},
+
+	'documents.superdelete'(documentId){
 		//check(documentId, String);
 		const document = Documents.findOne(documentId);
 		if (!document || document.owner !== this.userId) {

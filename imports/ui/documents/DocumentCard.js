@@ -134,7 +134,7 @@ class DocumentCard extends React.Component {
 		const { document } = this.props ;
 
 		const blob = new Blob(
-			[document.source],
+			[document.decoded || document.source],
 			{type: "text/plain;charset=utf-8"}
 		) ;
 
@@ -168,6 +168,8 @@ class DocumentCard extends React.Component {
 				createdAt,
 				patientId,
 				source,
+				encoding,
+				decoded,
 				parsed,
 				format,
 				kind,
@@ -319,7 +321,7 @@ class DocumentCard extends React.Component {
 								secondary={
 									<Paper>
 										<pre className={classes.pre}>
-											{source}
+											{decoded || source}
 										</pre>
 									</Paper>
 								}

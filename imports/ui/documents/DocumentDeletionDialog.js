@@ -33,7 +33,7 @@ class DocumentDeletionDialog extends React.Component {
 
     const deleteThisDocument = event => {
       event.preventDefault();
-      Meteor.call('documents.remove', document._id, (err, res) => {
+      Meteor.call('documents.delete', document._id, (err, res) => {
 	if ( err ) console.error( err ) ;
 	else {
 	  console.log(`Document #${document._id} deleted.`);

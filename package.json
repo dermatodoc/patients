@@ -20,6 +20,7 @@
     "@vx/shape": "0.0.189",
     "@vx/tooltip": "0.0.189",
     "bcrypt": "3.0.6",
+    "chardet": "^0.8.0",
     "color": "^3.1.1",
     "currency-formatter": "^1.5.4",
     "d3-array": "^2.0.3",

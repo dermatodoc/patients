@@ -217,7 +217,14 @@ Meteor.methods({
 			throw new Meteor.Error('not-authorized');
 		}
 		Consultations.remove({ owner: this.userId , patientId: patientId }) ;
-		Documents.remove({ owner: this.userId , patientId: patientId }) ;
+		Documents.update({
+			owner: this.userId ,
+			patientId: patientId
+		}, {
+			$set: {
+				deleted: true
+			}
+		}) ;
 		return Patients.remove(patientId);
 	},
 
@@ -316,10 +323,18 @@ Meteor.methods({
 		);
 
 		// (8)
-		Documents.remove({
-			owner: this.userId ,
-			patientId: { $in: oldPatientIds } ,
-		}) ;
+		Documents.update(
+			{
+				owner: this.userId ,
+				patientId: { $in: oldPatientIds } ,
+			},
+			{
+				$set: { deleted: true } ,
+			},
+			{
+				multi: true
+			}
+		) ;
 
 		// (9)
 		Patients.remove({
