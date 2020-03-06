@@ -163,6 +163,9 @@ class Main extends React.Component {
 					<Route exact path="/wires/:year/page/:page" component={WiredConsultationsList}/>
 
 					<Route exact path="/unpaid" component={UnpaidConsultationsList}/>
+					<Route exact path="/unpaid/:year" component={UnpaidConsultationsList}/>
+					<Route exact path="/unpaid/:year/page/:page" component={UnpaidConsultationsList}/>
+
 					<Route exact path="/stats" component={Stats}/>
 					<Route exact path="/sepa" component={SEPAPaymentDetails}/>
 

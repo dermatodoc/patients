@@ -1,71 +1,57 @@
-import { Meteor } from 'meteor/meteor' ;
-import { withTracker } from 'meteor/react-meteor-data' ;
-
 import React from 'react' ;
 import PropTypes from 'prop-types';
 
-import { withStyles } from '@material-ui/core/styles';
+import dateFormat from 'date-fns/format' ;
 
-import ConsultationCard from './ConsultationCard.js';
+import ConsultationsPager from './ConsultationsPager.js';
 
-import Loading from '../navigation/Loading.js' ;
-import NoContent from '../navigation/NoContent.js' ;
+import YearJumper from '../navigation/YearJumper.js' ;
 
-import { Consultations } from '../../api/consultations.js';
+export default function UnpaidConsultationsList ( { match , year , page , perpage } ) {
 
-const styles = theme => ({
-	container: {
-		padding: theme.spacing(3),
-	},
-});
+	const now = new Date();
+	page = match && match.params.page && parseInt(match.params.page,10) || page ;
+	year = match && match.params.year || year || dateFormat(now, 'yyyy');
 
-class UnpaidConsultationsList extends React.Component {
+	const current = parseInt(year, 10);
 
-	constructor ( props ) {
-		super(props);
-	}
+	const begin = new Date(`${current}-01-01`);
+	const end = new Date(`${current+1}-01-01`);
 
-	render ( ) {
+	const query = {
+	  isDone: true,
+	  $expr: {
+		$ne: [ "$paid", "$price" ] ,
+	  } ,
+	  datetime: {
+	    $gte : begin ,
+	    $lt : end ,
+	  },
+	} ;
 
-		const { classes, loading } = this.props ;
+	const sort = {datetime: 1} ;
 
-		if (loading) return <Loading/>;
-
-		const { consultations } = this.props ;
-
-		const unpaidConsultations = consultations.filter(consultation => consultation.paid !== consultation.price);
-
-		if (unpaidConsultations.length === 0) return <NoContent>All consultations have been paid for :)</NoContent>;
-
-		return (
-			<div className={classes.container}>
-				{
-					unpaidConsultations.map(
-						consultation => (
-							<ConsultationCard
-								showPrice
-								key={consultation._id}
-								consultation={consultation}
-							/>
-						)
-					)
-				}
-			</div>
-		);
-	}
-
+	return (
+		<div>
+			<YearJumper current={current} toURL={x => `/wires/${x}`}/>
+			<ConsultationsPager
+				root={`/unpaid/${year}`}
+				page={page}
+				perpage={perpage}
+				query={query}
+				sort={sort}
+				itemProps={{showPrice: true}}
+			/>
+		</div>
+	);
 }
 
-UnpaidConsultationsList.propTypes = {
-	classes: PropTypes.object.isRequired,
-	theme: PropTypes.object.isRequired,
-};
+UnpaidConsultationsList.defaultProps = {
+  page: 1,
+  perpage: 10,
+} ;
 
-export default withTracker(() => {
-	const handle = Meteor.subscribe('consultations.unpaid');
-	if ( !handle.ready() ) return { loading: true } ;
-	return {
-		loading: false,
-		consultations: Consultations.find({}, {sort: {datetime: 1}}).fetch() ,
-	} ;
-}) ( withStyles(styles, { withTheme: true })(UnpaidConsultationsList) );
+UnpaidConsultationsList.propTypes = {
+	page: PropTypes.number.isRequired,
+	perpage: PropTypes.number.isRequired,
+};
