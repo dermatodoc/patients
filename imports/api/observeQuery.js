@@ -19,11 +19,13 @@ const observeQuery = (QueriedCollection, resultsCollection) =>
 		let initializing = true;
 
 		const stop = () => {
+			console.debug('STOP!', {uid});
 			this.stop();
 		};
 
 		const observers = {
 			added: (_id, fields) => {
+				console.debug('added', {_id});
 				if (initializing) results.push({_id, ...fields});
 				else if (observe.added) stop();
 			}

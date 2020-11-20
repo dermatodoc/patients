@@ -12,15 +12,18 @@ const makeObservedQuery = (Collection, subscription) => (
 	const handleRef = useRef(null);
 
 	useEffect(() => {
+		console.debug('useEffect enter', {deps});
 		setDirty(false);
 
 		const timestamp = new Date().getTime();
 		const key = JSON.stringify({timestamp, query, options});
 		const handle = Meteor.subscribe(subscription, key, query, options, {
 			onStop: () => {
+				console.debug('onStop', {key});
 				if (handleRef.current === handle) setDirty(true);
 			},
 			onReady: () => {
+				console.debug('onReady', {key});
 				const {results} = Collection.findOne({key});
 				setLoading(false);
 				setResults(results);
@@ -29,6 +32,7 @@ const makeObservedQuery = (Collection, subscription) => (
 		handleRef.current = handle;
 
 		return () => {
+			console.debug('useEffect exit', {deps});
 			handle.stop();
 		};
 	}, deps);
