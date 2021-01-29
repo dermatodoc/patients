@@ -20,9 +20,7 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import DeleteIcon from '@material-ui/icons/Delete';
 import LinkIcon from '@material-ui/icons/Link';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import LinkOffIcon from '@material-ui/icons/LinkOff';
 import TableChartIcon from '@material-ui/icons/TableChart';
 import SubjectIcon from '@material-ui/icons/Subject';
@@ -30,12 +28,9 @@ import FileCopyIcon from '@material-ui/icons/FileCopy';
 import RestoreFromTrashIcon from '@material-ui/icons/RestoreFromTrash';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
-import saveTextAs from '../../client/saveTextAs.js';
-
 import DocumentChips from './DocumentChips.js';
 import DocumentVersionsButton from './actions/DocumentVersionsButton.js';
 
-import DocumentDeletionDialog from './DocumentDeletionDialog.js';
 import DocumentSuperDeletionDialog from './DocumentSuperDeletionDialog.js';
 import DocumentRestorationDialog from './DocumentRestorationDialog.js';
 import DocumentLinkingDialog from './DocumentLinkingDialog.js';
@@ -43,6 +38,9 @@ import DocumentUnlinkingDialog from './DocumentUnlinkingDialog.js';
 import HealthOneLabResultsTable from './HealthOneLabResultsTable.js';
 import HealthOneReportContents from './HealthOneReportContents.js';
 import DocumentSource from './DocumentSource.js';
+
+import DocumentDownloadButton from './actions/DocumentDownloadButton.js';
+import DocumentDeletionButton from './actions/DocumentDeletionButton.js';
 
 const styles = () => ({
 	chips: {
@@ -61,31 +59,10 @@ class DocumentCard extends React.Component {
 		this.state = {
 			linking: false,
 			unlinking: false,
-			deleting: false,
 			restoring: false,
 			superdeleting: false
 		};
 	}
-
-	download = (_event) => {
-		const {document} = this.props;
-
-		const extensions = {
-			healthone: 'HLT'
-			// 'medar' : 'MDR' ,
-			// 'medidoc' : 'MDD' ,
-		};
-
-		const ext = extensions[document.format] || 'UNK';
-
-		const name = document.parsed
-			? `${document.identifier}-${document.reference}-${document.status}`
-			: `${document._id}`;
-
-		const filename = `${name}.${ext}`;
-
-		saveTextAs(document.decoded || document.source, filename);
-	};
 
 	render() {
 		const {
@@ -99,7 +76,7 @@ class DocumentCard extends React.Component {
 
 		const {document} = this.props;
 
-		const {linking, unlinking, deleting, restoring, superdeleting} = this.state;
+		const {linking, unlinking, restoring, superdeleting} = this.state;
 
 		return (
 			<Accordion
@@ -166,10 +143,7 @@ class DocumentCard extends React.Component {
 				<Divider />
 				<AccordionActions>
 					{VersionsButton && <VersionsButton document={document} />}
-					<Button color="primary" onClick={this.download}>
-						Download
-						<CloudDownloadIcon />
-					</Button>
+					<DocumentDownloadButton document={document} />
 					<Button
 						color="primary"
 						onClick={() => this.setState({linking: true})}
@@ -204,15 +178,7 @@ class DocumentCard extends React.Component {
 							<DeleteForeverIcon />
 						</Button>
 					)}
-					{!deleted && (
-						<Button
-							color="secondary"
-							onClick={() => this.setState({deleting: true})}
-						>
-							Delete
-							<DeleteIcon />
-						</Button>
-					)}
+					<DocumentDeletionButton document={document} />
 					<DocumentLinkingDialog
 						open={linking}
 						document={document}
@@ -223,11 +189,6 @@ class DocumentCard extends React.Component {
 						open={unlinking}
 						document={document}
 						onClose={() => this.setState({unlinking: false})}
-					/>
-					<DocumentDeletionDialog
-						open={deleting}
-						document={document}
-						onClose={() => this.setState({deleting: false})}
 					/>
 					<DocumentRestorationDialog
 						open={restoring}
