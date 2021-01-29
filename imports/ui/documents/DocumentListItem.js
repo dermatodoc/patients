@@ -16,15 +16,18 @@ import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 
 import DocumentChips from './DocumentChips.js';
 
+import DocumentDownloadIconButton from './actions/DocumentDownloadIconButton.js';
+import DocumentDeletionIconButton from './actions/DocumentDeletionIconButton.js';
+
 const useStyles = makeStyles((theme) => ({
 	item: {
 		marginTop: theme.spacing(2),
 		marginBottom: theme.spacing(2)
 	},
 	chips: {
-		display: 'flex',
-		justifyContent: 'center',
-		flexWrap: 'wrap'
+		// display: 'flex',
+		// justifyContent: 'center',
+		// flexWrap: 'wrap'
 	}
 }));
 
@@ -49,6 +52,8 @@ const DocumentListItem = (props) => {
 				}
 			/>
 			<ListItemSecondaryAction>
+				<DocumentDeletionIconButton document={document} />
+				<DocumentDownloadIconButton document={document} />
 				<IconButton
 					component={Link}
 					rel="noreferrer"
