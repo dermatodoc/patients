@@ -33,7 +33,7 @@ import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import saveTextAs from '../../client/saveTextAs.js';
 
 import DocumentChips from './DocumentChips.js';
-import DocumentVersionsButton from './DocumentVersionsButton.js';
+import DocumentVersionsButton from './actions/DocumentVersionsButton.js';
 
 import DocumentDeletionDialog from './DocumentDeletionDialog.js';
 import DocumentSuperDeletionDialog from './DocumentSuperDeletionDialog.js';

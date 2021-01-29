@@ -7,8 +7,8 @@ import Button from '@material-ui/core/Button';
 
 import DynamicFeedIcon from '@material-ui/icons/DynamicFeed';
 
-import withDocumentVersions from './withDocumentVersions.js';
-import {myEncodeURIComponent} from '../../client/uri.js';
+import withDocumentVersions from '../withDocumentVersions.js';
+import {myEncodeURIComponent} from '../../../client/uri.js';
 
 const DocumentVersionsButton = ({
 	document: {identifier, reference},
