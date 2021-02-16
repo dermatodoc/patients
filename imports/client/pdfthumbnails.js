@@ -27,12 +27,11 @@ function createContext(page, desiredWidth, desiredHeight) {
 	};
 }
 
-export function thumbnail(
+export async function thumbnail(
 	url,
 	{page = 1, width, height, type, encoderOptions} = {}
 ) {
-	// A Promise
-	return fetchPDF({url})
+	const dataURL = await fetchPDF({url})
 		.then((doc) => doc.getPage(page))
 		.then((thepage) => {
 			const renderContext = createContext(thepage, width, height);
@@ -44,4 +43,6 @@ export function thumbnail(
 			canvas.remove();
 			return dataURL;
 		});
+
+	return dataURL;
 }
