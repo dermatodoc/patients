@@ -73,7 +73,7 @@
     "react-dom": "^17.0.2",
     "react-loading": "^2.0.3",
     "react-router-dom": "^5.2.0",
-    "react-spring": "^9.1.1",
+    "react-spring": "^9.1.2",
     "regenerator-runtime": "^0.13.7",
     "sepa-payment-qr-code": "^1.0.0",
     "typeface-roboto": "^1.1.13",
