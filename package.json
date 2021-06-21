@@ -39,7 +39,7 @@
     "@visx/axis": "1.8.0",
     "@visx/event": "^1.7.0",
     "@visx/gradient": "1.7.0",
-    "@visx/grid": "1.8.0",
+    "@visx/grid": "1.9.1",
     "@visx/group": "1.7.0",
     "@visx/legend": "1.7.0",
     "@visx/mock-data": "1.7.0",
